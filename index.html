@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utang Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Retail Command Center</p>
+        <h1>Utang Tracker</h1>
+        <p class="hero-copy">
+          Ring up sales, manage the cart, and keep a running pulse on today's revenue from one clean touchscreen-friendly screen.
+        </p>
+      </div>
+      <section class="hero-stats" aria-label="Store performance">
+        <article>
+          <span>Revenue</span>
+          <strong id="dailyRevenue">$0.00</strong>
+        </article>
+        <article>
+          <span>Transactions</span>
+          <strong id="dailyTransactions">0</strong>
+        </article>
+        <article>
+          <span>Items Sold</span>
+          <strong id="dailyItems">0</strong>
+        </article>
+      </section>
+      <p class="app-status" id="appStatus" data-tone="neutral">Waiting for Utang Tracker server...</p>
+    </header>
+
+    <main class="workspace">
+      <section class="catalog-panel panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Products</p>
+            <h2>Quick Sale Grid</h2>
+          </div>
+          <label class="search-field">
+            <span class="sr-only">Search products</span>
+            <input id="searchInput" type="search" placeholder="Search by item or category">
+          </label>
+        </div>
+
+        <div class="category-filter" id="categoryFilter" aria-label="Product categories"></div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <aside class="checkout-panel panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Current Sale</p>
+            <h2>Cart & Checkout</h2>
+          </div>
+          <button id="clearCartButton" class="ghost-button" type="button">Clear Cart</button>
+        </div>
+
+        <div class="cart-items" id="cartItems"></div>
+
+        <section class="summary-box">
+          <label class="summary-row">
+            <span>Discount</span>
+            <input id="discountInput" type="number" min="0" step="0.01" value="0">
+          </label>
+          <label class="summary-row">
+            <span>Tax Rate</span>
+            <input id="taxInput" type="number" min="0" step="0.01" value="8.5">
+          </label>
+          <div class="totals">
+            <div>
+              <span>Subtotal</span>
+              <strong id="subtotalValue">$0.00</strong>
+            </div>
+            <div>
+              <span>Tax</span>
+              <strong id="taxValue">$0.00</strong>
+            </div>
+            <div class="grand-total">
+              <span>Total</span>
+              <strong id="totalValue">$0.00</strong>
+            </div>
+          </div>
+          <button id="checkoutButton" class="primary-button" type="button">Complete Sale</button>
+        </section>
+
+        <section class="receipt-box">
+          <div class="receipt-header">
+            <div>
+              <p class="panel-kicker">Receipt Log</p>
+              <h3>Recent Transactions</h3>
+            </div>
+            <button id="resetSalesButton" class="ghost-button warning" type="button">Reset Day</button>
+          </div>
+          <div class="receipt-list" id="receiptList"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <template id="productCardTemplate">
+    <article class="product-card">
+      <div class="product-topline">
+        <span class="product-category"></span>
+        <span class="product-stock"></span>
+      </div>
+      <h3 class="product-name"></h3>
+      <p class="product-description"></p>
+      <div class="product-footer">
+        <strong class="product-price"></strong>
+        <button class="primary-button small-button" type="button">Add</button>
+      </div>
+    </article>
+  </template>
+
+  <template id="cartItemTemplate">
+    <article class="cart-item">
+      <div>
+        <h3 class="cart-item-name"></h3>
+        <p class="cart-item-meta"></p>
+      </div>
+      <div class="cart-item-actions">
+        <div class="stepper">
+          <button class="stepper-button decrement" type="button" aria-label="Decrease quantity">-</button>
+          <span class="cart-item-qty"></span>
+          <button class="stepper-button increment" type="button" aria-label="Increase quantity">+</button>
+        </div>
+        <strong class="cart-item-total"></strong>
+        <button class="icon-button remove-item" type="button" aria-label="Remove item">Remove</button>
+      </div>
+    </article>
+  </template>
+
+  <template id="receiptTemplate">
+    <article class="receipt-entry">
+      <div>
+        <h4 class="receipt-id"></h4>
+        <p class="receipt-meta"></p>
+      </div>
+      <strong class="receipt-total"></strong>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
