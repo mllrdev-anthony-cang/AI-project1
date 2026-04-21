@@ -1,100 +1,52 @@
 {
-  "products": [
+  "profiles": [
     {
-      "id": "latte",
-      "name": "House Latte",
-      "category": "Coffee",
-      "description": "Double espresso, textured milk, and a smooth caramel finish.",
-      "price": 4.75,
-      "stock": 19
+      "id": "admin",
+      "name": "Admin",
+      "accent": "#8b5cf6",
+      "accessCode": "925462"
     },
     {
-      "id": "americano",
-      "name": "Americano",
-      "category": "Coffee",
-      "description": "Bold espresso stretched with hot water for a clean finish.",
-      "price": 3.5,
-      "stock": 18
+      "id": "maya",
+      "name": "Maya",
+      "accent": "#e50914",
+      "accessCode": "000000"
     },
     {
-      "id": "matcha",
-      "name": "Matcha Cooler",
-      "category": "Tea",
-      "description": "Ceremonial matcha, citrus syrup, and sparkling water.",
-      "price": 5.25,
-      "stock": 13
+      "id": "andre",
+      "name": "Andre",
+      "accent": "#1db954",
+      "accessCode": "000000"
     },
     {
-      "id": "croissant",
-      "name": "Butter Croissant",
-      "category": "Bakery",
-      "description": "Flaky laminated pastry baked fresh every morning.",
-      "price": 3.2,
-      "stock": 10
+      "id": "sofia",
+      "name": "Sofia",
+      "accent": "#f5c518",
+      "accessCode": "000000"
     },
     {
-      "id": "bagel",
-      "name": "Smoked Salmon Bagel",
-      "category": "Kitchen",
-      "description": "Whipped cream cheese, capers, dill, and smoked salmon.",
-      "price": 8.95,
-      "stock": 7
-    },
-    {
-      "id": "wrap",
-      "name": "Falafel Wrap",
-      "category": "Kitchen",
-      "description": "Warm pita with falafel, pickled onion, and tahini slaw.",
-      "price": 9.5,
-      "stock": 12
-    },
-    {
-      "id": "cookie",
-      "name": "Sea Salt Cookie",
-      "category": "Bakery",
-      "description": "Brown butter cookie with dark chocolate and sea salt.",
-      "price": 2.85,
-      "stock": 16
-    },
-    {
-      "id": "juice",
-      "name": "Sunrise Juice",
-      "category": "Cold Drinks",
-      "description": "Orange, pineapple, and ginger pressed fresh to order.",
-      "price": 4.4,
-      "stock": 9
+      "id": "guest",
+      "name": "Guest",
+      "accent": "#3b82f6",
+      "accessCode": "000000"
     }
   ],
-  "sales": [
+  "credits": [
     {
-      "id": "TX-20260416-001",
-      "timestamp": "Apr 16, 6:08 PM",
-      "items": 1,
-      "subtotal": 4.75,
-      "discount": 0,
-      "taxRate": 8.5,
-      "tax": 0.4,
-      "total": 5.15
+      "id": "CR-20260421-001",
+      "description": "reas",
+      "amount": 1,
+      "date": "2026-04-21",
+      "profileId": "maya",
+      "createdAt": "2026-04-21T13:21:20.615Z"
     },
     {
-      "id": "TX-20260416-002",
-      "timestamp": "Apr 16, 6:09 PM",
-      "items": 1,
-      "subtotal": 5.25,
-      "discount": 0,
-      "taxRate": 8.5,
-      "tax": 0.45,
-      "total": 5.7
-    },
-    {
-      "id": "TX-20260416-003",
-      "timestamp": "Apr 16, 6:10 PM",
-      "items": 1,
-      "subtotal": 4.75,
-      "discount": 0,
-      "taxRate": 8.5,
-      "tax": 0.4,
-      "total": 5.15
+      "id": "CR-20260421-002",
+      "description": "test",
+      "amount": 112,
+      "date": "2026-04-21",
+      "profileId": "maya",
+      "createdAt": "2026-04-21T14:09:15.840Z"
     }
   ]
 }

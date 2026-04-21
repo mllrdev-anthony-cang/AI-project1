@@ -3,148 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Utang Tracker</title>
+  <title>Credit Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-shell">
+  <section class="profile-gate" id="profileGate" aria-labelledby="profileGateTitle">
+    <div class="profile-gate__content">
+      <p class="brand-mark">Credit Tracker</p>
+      <h1 id="profileGateTitle">Who's tracking today?</h1>
+      <p class="profile-gate__copy" id="profileGateCopy">
+        Pick a profile to open your ledger dashboard with a Netflix-style sign-in experience.
+      </p>
+      <div class="profile-grid" id="profileGrid" role="list" aria-label="Profiles"></div>
+      <section id="accessCodePanel" class="access-code-panel" hidden aria-labelledby="accessCodeTitle">
+        <button id="accessCodeBackButton" class="ghost-button access-code-panel__back" type="button">Back To Profiles</button>
+        <span class="access-code-panel__avatar" id="accessCodeAvatar">CT</span>
+        <h2 id="accessCodeTitle">Enter Access Code</h2>
+        <p class="access-code-panel__copy" id="accessCodeCopy">Use your 6-digit access code to continue.</p>
+        <form id="accessCodeForm" class="access-code-form">
+          <label class="field">
+            <span>Access Code</span>
+            <input id="accessCodeInput" name="accessCode" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="000000" required>
+          </label>
+          <button class="primary-button" type="submit">Unlock Profile</button>
+        </form>
+      </section>
+    </div>
+  </section>
+
+  <div class="app-shell" id="appShell" hidden>
     <header class="hero">
       <div>
-        <p class="eyebrow">Retail Command Center</p>
-        <h1>Utang Tracker</h1>
+        <p class="eyebrow">Personal Ledger</p>
+        <h1>Credit Tracker</h1>
         <p class="hero-copy">
-          Ring up sales, manage the cart, and keep a running pulse on today's revenue from one clean touchscreen-friendly screen.
+          Track what was borrowed in one place with simple entries for item description, amount, and date.
         </p>
       </div>
-      <section class="hero-stats" aria-label="Store performance">
+      <div class="session-panel">
+        <div class="active-profile" id="activeProfileCard" aria-live="polite">
+          <span class="active-profile__avatar" id="activeProfileAvatar">CT</span>
+          <div>
+            <p class="active-profile__label">Signed in as</p>
+            <strong id="activeProfileName">Guest</strong>
+          </div>
+        </div>
+        <button id="switchProfileButton" class="ghost-button" type="button">Switch Profile</button>
+      </div>
+      <section class="hero-stats" aria-label="Credit summary">
         <article>
-          <span>Revenue</span>
-          <strong id="dailyRevenue">$0.00</strong>
+          <span>Total Credit</span>
+          <strong id="totalCredit">$0.00</strong>
         </article>
         <article>
-          <span>Transactions</span>
-          <strong id="dailyTransactions">0</strong>
+          <span>Entries</span>
+          <strong id="entryCount">0</strong>
         </article>
         <article>
-          <span>Items Sold</span>
-          <strong id="dailyItems">0</strong>
+          <span>Latest Date</span>
+          <strong id="latestDate">No entries</strong>
         </article>
       </section>
-      <p class="app-status" id="appStatus" data-tone="neutral">Waiting for Utang Tracker server...</p>
+      <p class="app-status" id="appStatus" data-tone="neutral">Waiting for Credit Tracker server...</p>
     </header>
 
     <main class="workspace">
-      <section class="catalog-panel panel">
-        <div class="panel-header">
+      <section class="panel form-panel">
+        <div id="creditPanelHeader" class="panel-header">
           <div>
-            <p class="panel-kicker">Products</p>
-            <h2>Quick Sale Grid</h2>
+            <p class="panel-kicker">New Entry</p>
+            <h2>Add Credit Record</h2>
           </div>
-          <label class="search-field">
-            <span class="sr-only">Search products</span>
-            <input id="searchInput" type="search" placeholder="Search by item or category">
-          </label>
         </div>
 
-        <div class="category-filter" id="categoryFilter" aria-label="Product categories"></div>
-        <div class="product-grid" id="productGrid"></div>
+        <form id="creditForm" class="credit-form">
+          <label class="field">
+            <span>Item Description</span>
+            <input id="descriptionInput" name="description" type="text" placeholder="Example: Grocery advance" required>
+          </label>
+          <label class="field">
+            <span>Amount</span>
+            <input id="amountInput" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+          </label>
+          <label class="field">
+            <span>Date</span>
+            <input id="dateInput" name="date" type="date" required>
+          </label>
+          <button class="primary-button" type="submit">Add Credit</button>
+        </form>
+
+        <form id="profileCodeForm" class="profile-code-form">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Security</p>
+              <h2>Update Access Code</h2>
+            </div>
+          </div>
+          <label class="field">
+            <span>Current Code</span>
+            <input id="currentCodeInput" name="currentCode" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="000000" required>
+          </label>
+          <label class="field">
+            <span>New Code</span>
+            <input id="newCodeInput" name="newCode" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="123456" required>
+          </label>
+          <label class="field">
+            <span>Confirm New Code</span>
+            <input id="confirmCodeInput" name="confirmCode" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="123456" required>
+          </label>
+          <button class="ghost-button" type="submit">Save Access Code</button>
+        </form>
+        <div id="adminNotice" class="admin-notice" hidden>
+          Admin mode can review every profile's credit history and reset the tracker, but it cannot create new entries.
+        </div>
+
+        <div id="adminManagement" class="admin-management" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Admin</p>
+              <h2>Profile Management</h2>
+            </div>
+          </div>
+          <p class="admin-management__copy">
+            Review profile access at a glance, compare activity counts, and use the ledger filter to inspect or reset one profile at a time.
+          </p>
+          <form id="profileManagementForm" class="profile-management-form">
+            <label class="field">
+              <span>Profile Name</span>
+              <input id="profileNameInput" name="profileName" type="text" maxlength="24" placeholder="Example: Chuckie" required>
+            </label>
+            <label class="field">
+              <span>Accent Color</span>
+              <input id="profileAccentInput" name="profileAccent" type="color" value="#22c55e">
+            </label>
+            <label class="field">
+              <span>Access Code</span>
+              <input id="profileAccessCodeInput" name="profileAccessCode" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="000000" required>
+            </label>
+            <button class="primary-button" type="submit">Add Profile</button>
+          </form>
+          <div id="adminProfileList" class="admin-profile-list"></div>
+        </div>
       </section>
 
-      <aside class="checkout-panel panel">
+      <aside class="panel ledger-panel">
         <div class="panel-header">
           <div>
-            <p class="panel-kicker">Current Sale</p>
-            <h2>Cart & Checkout</h2>
+            <p class="panel-kicker">Ledger</p>
+            <h2>Credit Entries</h2>
           </div>
-          <button id="clearCartButton" class="ghost-button" type="button">Clear Cart</button>
+          <div class="ledger-actions">
+            <div id="adminLedgerControls" class="admin-ledger-controls" hidden>
+              <label class="admin-filter">
+                <span>Profile Filter</span>
+                <select id="profileFilterSelect">
+                  <option value="all">All Profiles</option>
+                </select>
+              </label>
+            </div>
+            <button id="resetButton" class="ghost-button warning" type="button">Reset Tracker</button>
+          </div>
         </div>
 
-        <div class="cart-items" id="cartItems"></div>
-
-        <section class="summary-box">
-          <label class="summary-row">
-            <span>Discount</span>
-            <input id="discountInput" type="number" min="0" step="0.01" value="0">
-          </label>
-          <label class="summary-row">
-            <span>Tax Rate</span>
-            <input id="taxInput" type="number" min="0" step="0.01" value="8.5">
-          </label>
-          <div class="totals">
-            <div>
-              <span>Subtotal</span>
-              <strong id="subtotalValue">$0.00</strong>
-            </div>
-            <div>
-              <span>Tax</span>
-              <strong id="taxValue">$0.00</strong>
-            </div>
-            <div class="grand-total">
-              <span>Total</span>
-              <strong id="totalValue">$0.00</strong>
-            </div>
-          </div>
-          <button id="checkoutButton" class="primary-button" type="button">Complete Sale</button>
-        </section>
-
-        <section class="receipt-box">
-          <div class="receipt-header">
-            <div>
-              <p class="panel-kicker">Receipt Log</p>
-              <h3>Recent Transactions</h3>
-            </div>
-            <button id="resetSalesButton" class="ghost-button warning" type="button">Reset Day</button>
-          </div>
-          <div class="receipt-list" id="receiptList"></div>
-        </section>
+        <div class="ledger-list" id="creditList"></div>
       </aside>
     </main>
   </div>
 
-  <template id="productCardTemplate">
-    <article class="product-card">
-      <div class="product-topline">
-        <span class="product-category"></span>
-        <span class="product-stock"></span>
+  <template id="creditEntryTemplate">
+    <article class="ledger-entry">
+      <div class="ledger-copy">
+        <h3 class="ledger-description"></h3>
+        <p class="ledger-meta"></p>
       </div>
-      <h3 class="product-name"></h3>
-      <p class="product-description"></p>
-      <div class="product-footer">
-        <strong class="product-price"></strong>
-        <button class="primary-button small-button" type="button">Add</button>
-      </div>
+      <strong class="ledger-amount"></strong>
     </article>
   </template>
 
-  <template id="cartItemTemplate">
-    <article class="cart-item">
-      <div>
-        <h3 class="cart-item-name"></h3>
-        <p class="cart-item-meta"></p>
-      </div>
-      <div class="cart-item-actions">
-        <div class="stepper">
-          <button class="stepper-button decrement" type="button" aria-label="Decrease quantity">-</button>
-          <span class="cart-item-qty"></span>
-          <button class="stepper-button increment" type="button" aria-label="Increase quantity">+</button>
-        </div>
-        <strong class="cart-item-total"></strong>
-        <button class="icon-button remove-item" type="button" aria-label="Remove item">Remove</button>
-      </div>
-    </article>
-  </template>
-
-  <template id="receiptTemplate">
-    <article class="receipt-entry">
-      <div>
-        <h4 class="receipt-id"></h4>
-        <p class="receipt-meta"></p>
-      </div>
-      <strong class="receipt-total"></strong>
-    </article>
+  <template id="profileCardTemplate">
+    <button class="profile-card" type="button" role="listitem">
+      <span class="profile-card__avatar"></span>
+      <span class="profile-card__name"></span>
+    </button>
   </template>
 
   <script src="app.js"></script>

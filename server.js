@@ -15,83 +15,113 @@ const staticFiles = {
   "/app.js": "app.js",
 };
 
-const seedProducts = [
-  {
-    id: "latte",
-    name: "House Latte",
-    category: "Coffee",
-    description: "Double espresso, textured milk, and a smooth caramel finish.",
-    price: 4.75,
-    stock: 21,
-  },
-  {
-    id: "americano",
-    name: "Americano",
-    category: "Coffee",
-    description: "Bold espresso stretched with hot water for a clean finish.",
-    price: 3.5,
-    stock: 18,
-  },
-  {
-    id: "matcha",
-    name: "Matcha Cooler",
-    category: "Tea",
-    description: "Ceremonial matcha, citrus syrup, and sparkling water.",
-    price: 5.25,
-    stock: 14,
-  },
-  {
-    id: "croissant",
-    name: "Butter Croissant",
-    category: "Bakery",
-    description: "Flaky laminated pastry baked fresh every morning.",
-    price: 3.2,
-    stock: 10,
-  },
-  {
-    id: "bagel",
-    name: "Smoked Salmon Bagel",
-    category: "Kitchen",
-    description: "Whipped cream cheese, capers, dill, and smoked salmon.",
-    price: 8.95,
-    stock: 7,
-  },
-  {
-    id: "wrap",
-    name: "Falafel Wrap",
-    category: "Kitchen",
-    description: "Warm pita with falafel, pickled onion, and tahini slaw.",
-    price: 9.5,
-    stock: 12,
-  },
-  {
-    id: "cookie",
-    name: "Sea Salt Cookie",
-    category: "Bakery",
-    description: "Brown butter cookie with dark chocolate and sea salt.",
-    price: 2.85,
-    stock: 16,
-  },
-  {
-    id: "juice",
-    name: "Sunrise Juice",
-    category: "Cold Drinks",
-    description: "Orange, pineapple, and ginger pressed fresh to order.",
-    price: 4.4,
-    stock: 9,
-  },
+const defaultProfiles = [
+  { id: "admin", name: "Admin", accent: "#8b5cf6", accessCode: "000000" },
+  { id: "maya", name: "Maya", accent: "#e50914", accessCode: "000000" },
+  { id: "andre", name: "Andre", accent: "#1db954", accessCode: "000000" },
+  { id: "sofia", name: "Sofia", accent: "#f5c518", accessCode: "000000" },
+  { id: "guest", name: "Guest", accent: "#3b82f6", accessCode: "000000" },
 ];
+const adminProfileId = "admin";
+const protectedProfileIds = new Set(["admin", "guest"]);
+const requiredProfiles = defaultProfiles.filter((profile) => protectedProfileIds.has(profile.id));
 
 const defaultStore = {
-  products: seedProducts,
-  sales: [],
+  profiles: defaultProfiles,
+  credits: [],
 };
+
+function normalizeProfileId(profileId) {
+  const normalized = String(profileId || "").trim().toLowerCase();
+  return /^[a-z0-9_-]+$/.test(normalized) ? normalized : "";
+}
+
+function normalizeAccessCode(accessCode, fallback = "000000") {
+  const normalized = String(accessCode || "").trim();
+  return /^\d{6}$/.test(normalized) ? normalized : fallback;
+}
+
+function sanitizeProfile(profile) {
+  return {
+    id: profile.id,
+    name: profile.name,
+    accent: profile.accent,
+  };
+}
+
+function slugifyProfileName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function normalizeAccent(accent, fallback = "#3b82f6") {
+  const normalized = String(accent || "").trim();
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized.toLowerCase() : fallback;
+}
+
+function normalizeProfile(profile) {
+  const name = String(profile?.name || "").trim();
+  const id = normalizeProfileId(profile?.id) || slugifyProfileName(name);
+
+  if (!id || !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+    accent: normalizeAccent(profile?.accent),
+    accessCode: normalizeAccessCode(profile?.accessCode),
+  };
+}
+
+function ensureRequiredProfiles(profiles) {
+  const normalizedProfiles = Array.isArray(profiles)
+    ? profiles.map(normalizeProfile).filter(Boolean)
+    : [];
+  const profileMap = new Map(normalizedProfiles.map((profile) => [profile.id, profile]));
+
+  requiredProfiles.forEach((profile) => {
+    if (!profileMap.has(profile.id)) {
+      profileMap.set(profile.id, profile);
+    }
+  });
+
+  return Array.from(profileMap.values());
+}
+
+function normalizeStore(store) {
+  const profiles = Array.isArray(store?.profiles)
+    ? ensureRequiredProfiles(store.profiles)
+    : defaultProfiles.slice();
+  const knownProfileIds = new Set(profiles.map((profile) => profile.id));
+
+  return {
+    profiles,
+    credits: Array.isArray(store?.credits)
+      ? store.credits
+          .map((credit) => ({
+            ...credit,
+            profileId: normalizeProfileId(credit.profileId) || "guest",
+          }))
+          .filter((credit) => knownProfileIds.has(credit.profileId))
+      : [],
+  };
+}
 
 async function ensureStore() {
   await fs.mkdir(dataDir, { recursive: true });
 
   try {
     await fs.access(storeFile);
+    const existing = JSON.parse(await fs.readFile(storeFile, "utf8"));
+    const normalized = normalizeStore(existing);
+    if (!Array.isArray(existing.credits) || !Array.isArray(existing.profiles)) {
+      await writeStore(normalized);
+    }
   } catch {
     await writeStore(defaultStore);
   }
@@ -100,7 +130,7 @@ async function ensureStore() {
 async function readStore() {
   await ensureStore();
   const raw = await fs.readFile(storeFile, "utf8");
-  return JSON.parse(raw);
+  return normalizeStore(JSON.parse(raw));
 }
 
 async function writeStore(store) {
@@ -136,110 +166,269 @@ async function readRequestBody(request) {
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
-function buildSaleId(salesCount, now) {
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const sequence = String(salesCount + 1).padStart(3, "0");
-  return `TX-${year}${month}${day}-${sequence}`;
+function buildCreditId(count, date) {
+  const sequence = String(count + 1).padStart(3, "0");
+  return `CR-${date.replaceAll("-", "")}-${sequence}`;
 }
 
-function buildSaleTimestamp(now) {
-  return now.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function isAdminProfile(profileId) {
+  return profileId === adminProfileId;
 }
 
-function calculateSaleTotals(products, items, discount, taxRate) {
-  const normalizedItems = items.map((item) => {
-    const product = products.find((entry) => entry.id === item.productId);
-    if (!product) {
-      throw new Error(`Product ${item.productId} does not exist.`);
-    }
+function getProfileId(requestUrl, payload = {}) {
+  const profileId = requestUrl.searchParams.get("profileId") || payload.profileId;
+  const normalized = normalizeProfileId(profileId);
 
-    const quantity = Number.parseInt(item.quantity, 10);
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      throw new Error(`Quantity for ${product.name} must be greater than zero.`);
-    }
+  if (!normalized) {
+    throw new Error("Profile is required.");
+  }
 
-    if (quantity > product.stock) {
-      throw new Error(`${product.name} only has ${product.stock} left in stock.`);
-    }
+  return normalized;
+}
 
-    return {
-      product,
-      quantity,
-      lineTotal: product.price * quantity,
-    };
-  });
+function getTargetProfileId(payload = {}) {
+  const targetProfileId = String(payload.targetProfileId || "").trim().toLowerCase();
 
-  const subtotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0);
-  const safeDiscount = Math.min(Math.max(Number(discount) || 0, 0), subtotal);
-  const safeTaxRate = Math.max(Number(taxRate) || 0, 0);
-  const taxable = Math.max(subtotal - safeDiscount, 0);
-  const tax = taxable * (safeTaxRate / 100);
-  const total = taxable + tax;
+  if (targetProfileId === "all") {
+    return "all";
+  }
+
+  return normalizeProfileId(targetProfileId);
+}
+
+function normalizeCredit(payload) {
+  const description = String(payload.description || "").trim();
+  const amount = Number.parseFloat(payload.amount);
+  const date = String(payload.date || "").trim();
+
+  if (!description) {
+    throw new Error("Item description is required.");
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("Amount must be greater than zero.");
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error("Date must use the YYYY-MM-DD format.");
+  }
 
   return {
-    normalizedItems,
-    subtotal,
-    discount: Number(safeDiscount.toFixed(2)),
-    taxRate: Number(safeTaxRate.toFixed(2)),
-    tax: Number(tax.toFixed(2)),
-    total: Number(total.toFixed(2)),
+    description,
+    amount: Number(amount.toFixed(2)),
+    date,
   };
 }
 
-async function handleApi(request, response, pathname) {
-  if (request.method === "GET" && pathname === "/api/state") {
-    const store = await readStore();
-    return sendJson(response, 200, store);
+function normalizeNewProfile(payload, store) {
+  const name = String(payload.name || "").trim();
+  const accent = normalizeAccent(payload.accent, "#22c55e");
+  const accessCode = normalizeAccessCode(payload.accessCode, "");
+
+  if (!name) {
+    throw new Error("Profile name is required.");
   }
 
-  if (request.method === "POST" && pathname === "/api/checkout") {
+  if (name.length > 24) {
+    throw new Error("Profile name must be 24 characters or fewer.");
+  }
+
+  if (!accessCode) {
+    throw new Error("Access code must be exactly 6 digits.");
+  }
+
+  const id = normalizeProfileId(payload.id) || slugifyProfileName(name);
+
+  if (!id) {
+    throw new Error("Profile name must include letters or numbers.");
+  }
+
+  if (store.profiles.some((profile) => profile.id === id)) {
+    throw new Error("That profile already exists.");
+  }
+
+  return {
+    id,
+    name,
+    accent,
+    accessCode,
+  };
+}
+
+function buildStatePayload(store, profileId) {
+  return {
+    profiles: store.profiles.map(sanitizeProfile),
+    credits: isAdminProfile(profileId)
+      ? store.credits
+      : store.credits.filter((credit) => credit.profileId === profileId),
+  };
+}
+
+function getStoredProfile(store, profileId) {
+  const profile = store.profiles.find((item) => item.id === profileId);
+  if (!profile) {
+    throw new Error("Selected profile does not exist.");
+  }
+  return profile;
+}
+
+async function handleApi(request, response, requestUrl) {
+  const pathname = requestUrl.pathname;
+
+  if (request.method === "GET" && pathname === "/api/state") {
+    const store = await readStore();
+    const profileId = getProfileId(requestUrl);
+    getStoredProfile(store, profileId);
+    return sendJson(response, 200, buildStatePayload(store, profileId));
+  }
+
+  if (request.method === "POST" && pathname === "/api/session") {
     const payload = await readRequestBody(request);
-    if (!Array.isArray(payload.items) || payload.items.length === 0) {
-      return sendJson(response, 400, {
-        error: "Checkout requires at least one cart item.",
-      });
+    const store = await readStore();
+    const profileId = getProfileId(requestUrl, payload);
+    const profile = getStoredProfile(store, profileId);
+    const accessCode = normalizeAccessCode(payload.accessCode, "");
+
+    if (!accessCode || accessCode !== profile.accessCode) {
+      throw new Error("Incorrect access code.");
     }
 
+    return sendJson(response, 200, buildStatePayload(store, profileId));
+  }
+
+  if (request.method === "POST" && pathname === "/api/credits") {
+    const payload = await readRequestBody(request);
     const store = await readStore();
-    const now = new Date();
-    const totals = calculateSaleTotals(store.products, payload.items, payload.discount, payload.taxRate);
+    const normalized = normalizeCredit(payload);
+    const profileId = getProfileId(requestUrl, payload);
+    getStoredProfile(store, profileId);
 
-    totals.normalizedItems.forEach((item) => {
-      item.product.stock -= item.quantity;
-    });
+    if (isAdminProfile(profileId)) {
+      throw new Error("Admin profile cannot create credit entries.");
+    }
 
-    const sale = {
-      id: buildSaleId(store.sales.length, now),
-      timestamp: buildSaleTimestamp(now),
-      items: totals.normalizedItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: Number(totals.subtotal.toFixed(2)),
-      discount: totals.discount,
-      taxRate: totals.taxRate,
-      tax: totals.tax,
-      total: totals.total,
+    const credit = {
+      id: buildCreditId(store.credits.length, normalized.date),
+      ...normalized,
+      profileId,
+      createdAt: new Date().toISOString(),
     };
 
-    store.sales.push(sale);
+    store.credits.push(credit);
     await writeStore(store);
 
     return sendJson(response, 201, {
-      sale,
-      products: store.products,
-      sales: store.sales,
+      credit,
+      ...buildStatePayload(store, profileId),
     });
   }
 
   if (request.method === "POST" && pathname === "/api/reset") {
-    const resetStore = JSON.parse(JSON.stringify(defaultStore));
-    await writeStore(resetStore);
-    return sendJson(response, 200, resetStore);
+    const store = await readStore();
+    const payload = await readRequestBody(request);
+    const profileId = getProfileId(requestUrl, payload);
+    getStoredProfile(store, profileId);
+    const targetProfileId = getTargetProfileId(payload);
+    const nextStore = {
+      profiles: store.profiles,
+      credits: isAdminProfile(profileId)
+        ? (targetProfileId === "all"
+            ? []
+            : store.credits.filter((credit) => credit.profileId !== targetProfileId))
+        : store.credits.filter((credit) => credit.profileId !== profileId),
+    };
+
+    await writeStore(nextStore);
+    return sendJson(response, 200, buildStatePayload(nextStore, profileId));
+  }
+
+  if (request.method === "POST" && pathname === "/api/profiles") {
+    const payload = await readRequestBody(request);
+    const store = await readStore();
+    const profileId = getProfileId(requestUrl, payload);
+
+    if (!isAdminProfile(profileId)) {
+      throw new Error("Only admin can add profiles.");
+    }
+
+    const nextProfile = normalizeNewProfile(payload, store);
+    const nextStore = {
+      profiles: [...store.profiles, nextProfile],
+      credits: store.credits,
+    };
+
+    await writeStore(nextStore);
+    return sendJson(response, 201, {
+      profile: sanitizeProfile(nextProfile),
+      ...buildStatePayload(nextStore, profileId),
+    });
+  }
+
+  if (request.method === "POST" && pathname === "/api/profiles/remove") {
+    const payload = await readRequestBody(request);
+    const store = await readStore();
+    const profileId = getProfileId(requestUrl, payload);
+    const targetProfileId = normalizeProfileId(payload.targetProfileId);
+
+    if (!isAdminProfile(profileId)) {
+      throw new Error("Only admin can remove profiles.");
+    }
+
+    if (!targetProfileId) {
+      throw new Error("Choose a profile to remove.");
+    }
+
+    if (protectedProfileIds.has(targetProfileId)) {
+      throw new Error("That profile cannot be removed.");
+    }
+
+    getStoredProfile(store, targetProfileId);
+
+    const nextStore = {
+      profiles: store.profiles.filter((profile) => profile.id !== targetProfileId),
+      credits: store.credits.filter((credit) => credit.profileId !== targetProfileId),
+    };
+
+    await writeStore(nextStore);
+    return sendJson(response, 200, {
+      removedProfileId: targetProfileId,
+      ...buildStatePayload(nextStore, profileId),
+    });
+  }
+
+  if (request.method === "POST" && pathname === "/api/profile-code") {
+    const payload = await readRequestBody(request);
+    const store = await readStore();
+    const profileId = getProfileId(requestUrl, payload);
+    const actingProfile = getStoredProfile(store, profileId);
+    const targetProfileId = normalizeProfileId(payload.targetProfileId) || profileId;
+    const targetProfile = getStoredProfile(store, targetProfileId);
+    const currentCode = normalizeAccessCode(payload.currentCode, "");
+    const newCode = normalizeAccessCode(payload.newCode, "");
+
+    if (!newCode) {
+      throw new Error("New access code must be exactly 6 digits.");
+    }
+
+    if (!isAdminProfile(profileId) && targetProfileId !== profileId) {
+      throw new Error("You can only change your own access code.");
+    }
+
+    if (!isAdminProfile(profileId) && currentCode !== actingProfile.accessCode) {
+      throw new Error("Current access code is incorrect.");
+    }
+
+    const nextStore = {
+      profiles: store.profiles.map((profile) =>
+        profile.id === targetProfile.id
+          ? { ...profile, accessCode: newCode }
+          : profile
+      ),
+      credits: store.credits,
+    };
+
+    await writeStore(nextStore);
+    return sendJson(response, 200, buildStatePayload(nextStore, profileId));
   }
 
   if (request.method === "GET" && pathname === "/api/health") {
@@ -275,7 +464,7 @@ async function serveStatic(response, pathname) {
 const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, `http://${request.headers.host || `${host}:${port}`}`);
-    const apiHandled = await handleApi(request, response, url.pathname);
+    const apiHandled = await handleApi(request, response, url);
     if (apiHandled !== false) {
       return;
     }
@@ -296,7 +485,7 @@ const server = http.createServer(async (request, response) => {
 ensureStore()
   .then(() => {
     server.listen(port, host, () => {
-      console.log(`Utang Tracker server running at http://${host}:${port}`);
+      console.log(`Credit Tracker server running at http://${host}:${port}`);
     });
   })
   .catch((error) => {
