@@ -7,28 +7,10 @@
       "accessCode": "000000"
     },
     {
-      "id": "maya",
-      "name": "Maya",
-      "accent": "#e50914",
-      "accessCode": "000000"
-    },
-    {
-      "id": "andre",
-      "name": "Andre",
-      "accent": "#1db954",
-      "accessCode": "000000"
-    },
-    {
-      "id": "sofia",
-      "name": "Sofia",
-      "accent": "#f5c518",
-      "accessCode": "000000"
-    },
-    {
-      "id": "guest",
-      "name": "Guest",
-      "accent": "#3b82f6",
-      "accessCode": "000000"
+      "id": "elthon",
+      "name": "Elthon",
+      "accent": "#22c55e",
+      "accessCode": "111111"
     }
   ],
   "credits": []

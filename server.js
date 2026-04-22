@@ -2,7 +2,7 @@ const http = require("http");
 const fs = require("fs/promises");
 const path = require("path");
 
-const host = process.env.HOST || "0.0.0.0";
+const host = process.env.HOST || "127.0.0.1";
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const rootDir = __dirname;
 const dataDir = path.join(rootDir, "data");
@@ -19,13 +19,10 @@ const staticFiles = {
 
 const defaultProfiles = [
   { id: "admin", name: "Admin", accent: "#8b5cf6", accessCode: "000000" },
-  { id: "maya", name: "Maya", accent: "#e50914", accessCode: "000000" },
-  { id: "andre", name: "Andre", accent: "#1db954", accessCode: "000000" },
-  { id: "sofia", name: "Sofia", accent: "#f5c518", accessCode: "000000" },
-  { id: "guest", name: "Guest", accent: "#3b82f6", accessCode: "000000" },
 ];
 const adminProfileId = "admin";
-const protectedProfileIds = new Set(["admin", "guest"]);
+const protectedProfileIds = new Set(["admin"]);
+const retiredDefaultProfileIds = new Set(["maya", "andre", "sofia", "guest"]);
 const requiredProfiles = defaultProfiles.filter((profile) => protectedProfileIds.has(profile.id));
 
 const defaultStore = {
@@ -84,7 +81,11 @@ function ensureRequiredProfiles(profiles) {
   const normalizedProfiles = Array.isArray(profiles)
     ? profiles.map(normalizeProfile).filter(Boolean)
     : [];
-  const profileMap = new Map(normalizedProfiles.map((profile) => [profile.id, profile]));
+  const profileMap = new Map(
+    normalizedProfiles
+      .filter((profile) => !retiredDefaultProfileIds.has(profile.id))
+      .map((profile) => [profile.id, profile])
+  );
 
   requiredProfiles.forEach((profile) => {
     if (!profileMap.has(profile.id)) {
@@ -107,7 +108,7 @@ function normalizeStore(store) {
       ? store.credits
           .map((credit) => ({
             ...credit,
-            profileId: normalizeProfileId(credit.profileId) || "guest",
+            profileId: normalizeProfileId(credit.profileId) || adminProfileId,
           }))
           .filter((credit) => knownProfileIds.has(credit.profileId))
       : [],
@@ -121,7 +122,11 @@ async function ensureStore() {
     await fs.access(storeFile);
     const existing = JSON.parse(await fs.readFile(storeFile, "utf8"));
     const normalized = normalizeStore(existing);
-    if (!Array.isArray(existing.credits) || !Array.isArray(existing.profiles)) {
+    if (
+      !Array.isArray(existing.credits) ||
+      !Array.isArray(existing.profiles) ||
+      JSON.stringify(existing) !== JSON.stringify(normalized)
+    ) {
       await writeStore(normalized);
     }
   } catch {

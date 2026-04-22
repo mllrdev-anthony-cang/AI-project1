@@ -1,14 +1,10 @@
-const currencyFormatter = new Intl.NumberFormat("en-US", {
+const currencyFormatter = new Intl.NumberFormat("en-PH", {
   style: "currency",
-  currency: "USD",
+  currency: "PHP",
 });
 
 const defaultProfiles = [
   { id: "admin", name: "Admin", accent: "#8b5cf6" },
-  { id: "maya", name: "Maya", accent: "#e50914" },
-  { id: "andre", name: "Andre", accent: "#1db954" },
-  { id: "sofia", name: "Sofia", accent: "#f5c518" },
-  { id: "guest", name: "Guest", accent: "#3b82f6" },
 ];
 
 const ui = {
@@ -122,7 +118,7 @@ function findProfile(profileId) {
 }
 
 function getProfileName(profileId) {
-  return findProfile(profileId)?.name || profileId || "Guest";
+  return findProfile(profileId)?.name || profileId || "Admin";
 }
 
 function buildApiPath(path) {
@@ -222,7 +218,7 @@ function renderAdminManagement() {
     const isFiltered = state.adminFilter === profile.id;
     const profileLabel = profile.id === "admin" ? "Administrator" : "Profile";
     const entryCount = profile.id === "admin" ? state.credits.length : getProfileEntryCount(profile.id);
-    const removable = !["admin", "guest"].includes(profile.id);
+    const removable = profile.id !== "admin";
 
     card.className = "admin-profile-card";
     card.style.setProperty("--profile-accent", profile.accent);
@@ -741,7 +737,7 @@ function loadInitialProfiles() {
   state.loading = true;
   setStatus("Loading profiles...", "neutral");
 
-  apiRequest("/api/state?profileId=guest")
+  apiRequest("/api/state?profileId=admin")
     .then((payload) => {
       syncProfiles(payload.profiles);
       renderProfiles();
