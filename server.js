@@ -2,11 +2,13 @@ const http = require("http");
 const fs = require("fs/promises");
 const path = require("path");
 
-const host = process.env.HOST || "127.0.0.1";
+const host = process.env.HOST || "0.0.0.0";
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const rootDir = __dirname;
 const dataDir = path.join(rootDir, "data");
-const storeFile = path.join(dataDir, "store.json");
+const defaultStoreFile = path.join(dataDir, "store.json");
+const storeFile = path.resolve(process.env.STORE_FILE_PATH || defaultStoreFile);
+const storeDir = path.dirname(storeFile);
 
 const staticFiles = {
   "/": "index.html",
@@ -113,7 +115,7 @@ function normalizeStore(store) {
 }
 
 async function ensureStore() {
-  await fs.mkdir(dataDir, { recursive: true });
+  await fs.mkdir(storeDir, { recursive: true });
 
   try {
     await fs.access(storeFile);
@@ -134,7 +136,7 @@ async function readStore() {
 }
 
 async function writeStore(store) {
-  await fs.mkdir(dataDir, { recursive: true });
+  await fs.mkdir(storeDir, { recursive: true });
   await fs.writeFile(storeFile, `${JSON.stringify(store, null, 2)}\n`, "utf8");
 }
 
@@ -486,6 +488,7 @@ ensureStore()
   .then(() => {
     server.listen(port, host, () => {
       console.log(`Credit Tracker server running at http://${host}:${port}`);
+      console.log(`Store file: ${storeFile}`);
     });
   })
   .catch((error) => {

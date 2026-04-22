@@ -4,7 +4,7 @@
       "id": "admin",
       "name": "Admin",
       "accent": "#8b5cf6",
-      "accessCode": "925462"
+      "accessCode": "000000"
     },
     {
       "id": "maya",
@@ -31,22 +31,5 @@
       "accessCode": "000000"
     }
   ],
-  "credits": [
-    {
-      "id": "CR-20260421-001",
-      "description": "reas",
-      "amount": 1,
-      "date": "2026-04-21",
-      "profileId": "maya",
-      "createdAt": "2026-04-21T13:21:20.615Z"
-    },
-    {
-      "id": "CR-20260421-002",
-      "description": "test",
-      "amount": 112,
-      "date": "2026-04-21",
-      "profileId": "maya",
-      "createdAt": "2026-04-21T14:09:15.840Z"
-    }
-  ]
+  "credits": []
 }
